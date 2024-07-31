@@ -1,0 +1,12 @@
+<svg class="w-screen h-screen">
+  <g>
+    @for (source of sources; track source.id) {
+      <rect (mousedown)="onMouseDown(source)" (mouseup)="onMouseUp()" (mousemove)="onMouseMove(source, $event)"
+            [attr.x]="source.pos.x"
+            [attr.y]="source.pos.y" width="30" height="30" fill="black" />
+    }
+  </g>
+  <g></g>
+  <g></g>
+</svg>
+<button (click)="addSource()" class="fixed top-4 right-4">Add thing</button>
