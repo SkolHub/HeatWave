@@ -19,10 +19,9 @@ import { NgClass, NgForOf, NgStyle } from '@angular/common';
 import { thermal_conductivity } from '../../lib/data';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateDialogComponent } from '../create-dialog/create-dialog.component';
-import { tableElements } from '../data';
+import { tableElements, themes } from '../data';
 import { MatSlider, MatSliderThumb } from '@angular/material/slider';
 import { FormsModule } from '@angular/forms';
-import { Event } from '@angular/router';
 
 interface Point {
   x: number;
@@ -56,18 +55,18 @@ interface ObjectModel {
 }
 
 export interface elementModel {
-  inactive: boolean,
-  symbol: string,
-  name: string,
-  mass: number,
-  Z: number,
-  valences: number[] | string,
-  group: string,
-  x: number,
-  y: number,
-  period: number,
-  positionGroup: number,
-  anionValence?: number
+  inactive: boolean;
+  symbol: string;
+  name: string;
+  mass: number;
+  Z: number;
+  valences: number[] | string;
+  group: string;
+  x: number;
+  y: number;
+  period: number;
+  positionGroup: number;
+  anionValence?: number;
 }
 
 @Component({
@@ -129,6 +128,42 @@ export class CanvasComponent implements OnInit, OnDestroy {
 
   canvasWidth!: number;
   canvasHeight!: number;
+
+  PI: number = Math.PI;
+
+  velocity: number = 200;
+
+  activeElement: elementModel = tableElements.find((el) => el.symbol === 'H')!;
+
+  shells: number[] = [1];
+
+  clickElement(symbol: string) {}
+
+  getPos(element: Point) {
+    const table = document.getElementById('table')!;
+
+    const height = table.clientHeight / 11;
+
+    return {
+      top: `${element.y * height - height / 2}px`,
+      left: `${element.x * height - height / 2}px`,
+      width: `${height}px`,
+      height: `${height}px`
+    };
+  }
+
+  getPosElementCard(element: Point) {
+    const table = document.getElementById('table')!;
+
+    const height = table.clientHeight / 11;
+
+    return {
+      top: `${element.y * height - height / 2}px`,
+      left: `${element.x * height - height / 2}px`,
+      width: `${height * 2.5}px`,
+      height: `${height * 2.5}px`
+    };
+  }
 
   interval: number = 1000;
 
@@ -223,8 +258,8 @@ export class CanvasComponent implements OnInit, OnDestroy {
             y: space * j
           },
           temperature: temperature,
-          Z: 8,
-          conductivity: thermal_conductivity.find((el) => el.Z === 8)!
+          Z: 94,
+          conductivity: thermal_conductivity.find((el) => el.Z === 94)!
             .conductivity,
           id: `atom${this.atomCount}`
         });
@@ -430,9 +465,6 @@ export class CanvasComponent implements OnInit, OnDestroy {
       }
     }
 
-    let min = 1000000000,
-      max = -100000000;
-
     for (const atom of this.airAtoms) {
       for (const influence of total_atoms) {
         if (atom.id === influence.id) {
@@ -440,8 +472,6 @@ export class CanvasComponent implements OnInit, OnDestroy {
         }
 
         const distance = this.sqrt(atom.pos, influence.pos);
-
-        // const prev = atom.temperature;
 
         atom.temperature -=
           this.getTemperature(
@@ -451,30 +481,15 @@ export class CanvasComponent implements OnInit, OnDestroy {
             atom.temperature,
             distance + 0.01
           ) * 100;
-
-        // if (atom.temperature > 50) {
-        //   console.log(
-        //     atom.conductivity,
-        //     influence.conductivity,
-        //     influence.temperature,
-        //     atom.temperature,
-        //     prev,
-        //     distance + 0.01
-        //   );
-        //
-        //   clearInterval(this.temperatureInterval);
-        // }
-
-        // atom.temperature = Math.max(atom.temperature, 0);
-        //
-        // min = Math.min(atom.temperature, min);
-        // max = Math.max(atom.temperature, max);
       }
     }
   }
 
   meanTemperature(object: ObjectModel) {
-    return object.atoms.reduce((acc, atom) => acc + atom.temperature, 0) / object.atoms.length;
+    return (
+      object.atoms.reduce((acc, atom) => acc + atom.temperature, 0) /
+      object.atoms.length
+    );
   }
 
   readonly dialog = inject(MatDialog);
@@ -490,34 +505,6 @@ export class CanvasComponent implements OnInit, OnDestroy {
         this.generateObj(width, height, 5, 5, temperature);
       }
     });
-  }
-
-  PI: number = Math.PI;
-
-  velocity: number = 200;
-
-  activeElement: elementModel = tableElements.find(el => el.symbol === 'H')!;
-
-  tableOpen: boolean = false;
-
-  shells: number[] = [1];
-
-  elementSize: number = 4.5;
-
-  themes: any = {
-    'Alkali metals': '#ecbe59',
-    'Alkaline earth metals': '#dee955',
-    'Lanthanides': '#ec77a3',
-    'Actinides': '#c686cc',
-    'Transition metals': '#fd8572',
-    'Post-transition metals': '#4cddf3',
-    'Other nonmetals': '#52ee61',
-    'Noble gases': '#759fff',
-    'Metalloids': '#3aefb6'
-  };
-
-  addElement(element: elementModel): void {
-
   }
 
   getRange(length: number): number[] {
@@ -545,4 +532,5 @@ export class CanvasComponent implements OnInit, OnDestroy {
   }
 
   protected readonly tableElements = tableElements;
+  protected readonly themes = themes;
 }

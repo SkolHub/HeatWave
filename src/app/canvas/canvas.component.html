@@ -67,32 +67,54 @@
 <!--    toggle-->
   </div>
 </aside>
-
-<div [@tableAnimation]='tableOpen' class='table bg-neutral-800/50 backdrop-blur-lg hidden'>
-  <div (mouseenter)='selectActiveElement(element)' class='element' *ngFor='let element of tableElements'
-       [ngStyle]="{'top': (element.y - 1) * elementSize + 'vw', 'left': (element.x - 1) * elementSize + (85 - 18 * elementSize) / 2 + 'vw'}">
-    <div [ngStyle]="{ 'border-color': themes[element.group] }" (click)='!element.inactive?addElement(element):null'
-         [class.inactive]='element.inactive' class='element-content'>
-      <label [ngStyle]="{ 'color': themes[element.group], 'text-shadow': '0px 0px 5px ' + themes[element.group] }"
-             class='Z'>{{ element.Z }}</label>
-      <label [ngStyle]="{ 'color': themes[element.group], 'text-shadow': '0px 0px 5px ' + themes[element.group] }"
-             class='symbol'>{{ element.symbol }}</label>
-      <label [ngStyle]="{ 'color': themes[element.group], 'text-shadow': '0px 0px 5px ' + themes[element.group] }"
-             class='name'>{{ element.name }}</label>
-      <label [ngStyle]="{ 'color': themes[element.group], 'text-shadow': '0px 0px 5px ' + themes[element.group] }"
-             class='mass'>{{ element.mass }}</label>
-    </div>
-  </div>
-  <div class='last-active-element'>
-    <div [ngStyle]="{ 'border-color': 'transparent' }" class='last-active-element-content'>
-      <svg class='electrons' viewBox='0 0 500 500'>
-        <g *ngFor='let shell of shells; let i = index'>
-          <circle cx='250' cy='250' [attr.r]='220 - 25 * i' stroke-width='4' fill='none' stroke='#828282'></circle>
-          <g *ngFor='let j of getRange(shell); let k = index'>
-            <circle [attr.cx]='470 - 25 * i' cy='250' r='7' fill='#828282'>
-              <animateTransform attributeName='transform' attributeType='XML' type='rotate'
+<div class="fixed z-50 top-0 left-0 flex flex-col backdrop-blur-lg w-screen h-screen overflow-auto pr-8">
+  <div id="table" class="relative w-full h-full">
+    @for (element of tableElements; track element.Z) {
+      <div (mouseenter)="selectActiveElement(element)" class="absolute border border-transparent flex cursor-pointer"
+           (click)="clickElement(element.symbol)"
+           [ngStyle]="getPos(element)">
+        <div
+          class="w-full h-full border bg-[#131313] hover:scale-150 hover:z-50 flex flex-col items-center justify-between"
+          [ngStyle]="{
+          borderColor: themes[element.group],
+          borderWidth: '1px',
+          filter: (element.inactive ? 'opacity(.25)' : '')
+          }"
+          style="-webkit-transition: all 0.07s ease-in-out !important;
+	-moz-transition: all 0.07s ease-in-out !important;
+	-ms-transition: all 0.07s ease-in-out !important;
+	-o-transition: all 0.07s ease-in-out !important;
+	transition: all 0.07s ease-in-out !important;">
+          <span class="text-white text-xs leading-none self-start pt-1 pl-1" [ngStyle]="{
+          color: themes[element.group],
+          'text-shadow': '0px 0px 5px ' + themes[element.group]
+          }">{{ element.Z }}</span>
+          <div class="flex flex-col items-center">
+            <span class="text-white text-2xl leading-none" [ngStyle]="{
+          color: themes[element.group],
+          'text-shadow': '0px 0px 5px ' + themes[element.group]
+          }">{{ element.symbol }}</span>
+            <span class="text-white text-xs leading-none" [ngStyle]="{
+          color: themes[element.group],
+          'text-shadow': '0px 0px 5px ' + themes[element.group]
+          }">{{ element.name }}</span>
+          </div>
+          <span class="text-white text-xs leading-none pb-1" [ngStyle]="{
+          color: themes[element.group],
+          'text-shadow': '0px 0px 5px ' + themes[element.group]
+          }">{{ element.mass }}</span>
+        </div>
+      </div>
+    }
+    <div class="absolute flex flex-col items-center justify-between" [ngStyle]="getPosElementCard({x: 1, y: 8.5})">
+      <svg class="absolute" viewBox="0 0 500 500">
+        <g *ngFor="let shell of shells; let i = index">
+          <circle cx="250" cy="250" [attr.r]="220 - 25 * i" stroke-width="4" fill="none" stroke="#828282"></circle>
+          <g *ngFor="let j of getRange(shell); let k = index">
+            <circle [attr.cx]="470 - 25 * i" cy="250" r="7" fill="#828282">
+              <animateTransform attributeName="transform" attributeType="XML" type="rotate"
                                 [attr.from]="360 / getRange(shell).length * j + ' 250 250'"
-                                [attr.to]="360 / getRange(shell).length * j + 360 + ' 250 250'" repeatCount='indefinite'
+                                [attr.to]="360 / getRange(shell).length * j + 360 + ' 250 250'" repeatCount="indefinite"
                                 [attr.dur]="(2 * PI * (220 - 25 * i)) / velocity + 's'" />
             </circle>
           </g>
@@ -100,163 +122,18 @@
       </svg>
       <label
         [ngStyle]="{ 'color': themes[activeElement.group], 'text-shadow': '0px 0px 5px ' + themes[activeElement.group] }"
-        class='Z-active'>{{ activeElement.Z }}</label>
-      <div style='display: flex; flex-direction: column;'>
+        class="self-start text-xl">{{ activeElement.Z }}</label>
+      <div class="flex flex-col items-center">
         <label
           [ngStyle]="{ 'color': themes[activeElement.group], 'text-shadow': '0px 0px 5px ' + themes[activeElement.group] }"
-          class='symbol-active'>{{ activeElement.symbol }}</label>
+          class="symbol-active text-6xl">{{ activeElement.symbol }}</label>
         <label
           [ngStyle]="{ 'color': themes[activeElement.group], 'text-shadow': '0px 0px 5px ' + themes[activeElement.group] }"
-          class='name-active'>{{ activeElement.name }}</label>
+          class="name-active">{{ activeElement.name }}</label>
       </div>
       <label
         [ngStyle]="{ 'color': themes[activeElement.group], 'text-shadow': '0px 0px 5px ' + themes[activeElement.group] }"
-        class='mass-active'>{{ activeElement.mass }}</label>
+        class="mass-active">{{ activeElement.mass }}</label>
     </div>
   </div>
 </div>
-
-<style>
-  :host {
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    flex-direction: row;
-    background: #222;
-    color: #ffffff;
-
-    text {
-      fill: #ffffff;
-    }
-  }
-
-  .table {
-    position: fixed;
-    width: 100vw;
-    height: 100vh;
-    right: 0;
-    scale: 1.2;
-  }
-
-  .element {
-    position: absolute;
-    width: 4.5vw;
-    height: 4.5vw;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #000;
-    -webkit-transition: all 0.07s ease-in-out !important;
-    -moz-transition: all 0.07s ease-in-out !important;
-    -ms-transition: all 0.07s ease-in-out !important;
-    -o-transition: all 0.07s ease-in-out !important;
-    transition: all 0.07s ease-in-out !important;
-
-    &:hover {
-      transform: scale(1.5) !important;
-      z-index: 1000;
-    }
-  }
-
-  .element-content {
-    border-style: solid;
-    border-color: rgb(255, 255, 255);
-    border-width: 1px;
-    min-width: 4.2vw;
-    min-height: 4.2vw;
-    width: 4.2vw;
-    height: 4.2vw;
-    max-width: 4.2vw;
-    max-height: 4.2vw;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .Z {
-    margin: 0;
-    font-size: .7vw;
-  }
-
-  .symbol {
-    margin: 0;
-    font-size: 1.5vw;
-    text-align: center;
-    line-height: 80%;
-  }
-
-  .name {
-    margin: 0;
-    font-size: .55vw;
-    text-align: center;
-  }
-
-  .mass {
-    margin: 0;
-    font-size: .7vw;
-    text-align: center;
-  }
-
-  .inactive {
-    filter: opacity(.25);
-  }
-
-  .last-active-element {
-    width: 12vw;
-    height: 12vw;
-    top: 33vw;
-    left: 2vw;
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-  }
-
-  .last-active-element-content {
-    width: 11.2vw;
-    height: 11.2vw;
-    border-color: rgb(255, 255, 255);
-    border-style: solid;
-    border-width: 1px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  .Z-active {
-    margin: 0;
-    font-size: 1.2vw;
-  }
-
-  .symbol-active {
-    margin: 0;
-    font-size: 3vw;
-    text-align: center;
-    line-height: 80%;
-  }
-
-  .name-active {
-    margin: 0;
-    font-size: 1vw;
-    text-align: center;
-  }
-
-  .mass-active {
-    margin: 0;
-    font-size: 1vw;
-    text-align: center;
-  }
-
-  .electrons {
-    position: absolute;
-    top: .4vw;
-    left: .4vw;
-    width: 11.2vw;
-    height: 11.2vw;
-    background: transparent;
-    z-index: -1;
-  }
-
-  * {
-    user-select: none;
-  }</style>
