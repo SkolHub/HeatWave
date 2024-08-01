@@ -1,10 +1,10 @@
 <div class="w-full h-full flex" (mousemove)="onMouseMove($event)" (mouseup)="onMouseUp()">
   <aside class="flex h-full">
     test
-    <button (click)="generateObjs()">Add group</button>
+    <button (click)="generateObj(5, 5, 5, 10)">Add group</button>
   </aside>
   <main class="grow h-full">
-    <svg id="canvas" class="w-full h-full">
+    <svg id="canvas" class="w-full h-full bg-black">
       <g>
         @for (atom of airAtoms; track atom.id) {
           <circle [attr.cx]="atom.pos.x" [attr.cy]="atom.pos.y" r="8" [attr.fill]="'#b9e8fe'" />
@@ -12,11 +12,12 @@
       </g>
       <g>
         @for (object of objects; track object.id) {
-          <rect [attr.x]="object.pos.x" [attr.y]="object.pos.y" [attr.width]="50" [attr.height]="50" fill="black"
+          <rect [attr.x]="object.pos.x" [attr.y]="object.pos.y" [attr.width]="50" [attr.height]="50" fill="blue"
                 (mousedown)="onMouseDown($event, object)" />
           <g>
             @for (atom of object.atoms; track atom.id) {
-              <circle [attr.cx]="object.pos.x + atom.pos.x" [attr.cy]="object.pos.y + atom.pos.y" r="5"
+              <circle [attr.cx]="object.pos.x + atom.pos.x" [attr.cy]="object.pos.y + atom.pos.y"
+                      [attr.r]="object.atomRadius"
                       [attr.fill]="'red'" style="pointer-events: none" />
             }
           </g>

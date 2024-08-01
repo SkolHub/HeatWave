@@ -24,6 +24,9 @@ interface ObjectModel {
   atoms: SolidAtom[];
   pos: Point;
   id: string;
+  atomRadius: number;
+  width: number;
+  height: number;
 }
 
 @Component({
@@ -51,7 +54,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.startInterval();
-    this.generateObjs();
+    this.generateObj(10, 10, 5, 10);
     this.generateAir();
     this.animate();
   }
@@ -72,7 +75,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
     }
   }
 
-  onMouseDown(e: MouseEvent, object: ObjectModel) {
+  onMouseDown(_e: MouseEvent, object: ObjectModel) {
     this.selectedObject = object;
   }
 
@@ -87,22 +90,24 @@ export class CanvasComponent implements OnInit, OnDestroy {
     this.selectedObject = null;
   }
 
-  generateObjs() {
+  generateObj(rows: number, cols: number, atomRadius: number, atomGap: number) {
     const atoms: SolidAtom[] = [];
 
-    for (let i = 0; i < 10; i++) {
-      for (let j = 0; j < 10; j++) {
+    const space = atomGap + atomRadius * 2;
+
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
         atoms.push({
           origin: {
-            x: 20 * i,
-            y: 20 * j
+            x: space * i,
+            y: space * j
           },
           pos: {
-            x: 20 * i,
-            y: 20 * j
+            x: space * i,
+            y: space * j
           },
           temperature: 0,
-          id: `atom ${this.atomCount}`
+          id: `atom${this.atomCount}`
         });
 
         this.atomCount++;
@@ -115,8 +120,13 @@ export class CanvasComponent implements OnInit, OnDestroy {
       pos: {
         x: 50,
         y: 50
-      }
+      },
+      atomRadius,
+      width: 20,
+      height: 20
     };
+
+    this.objectCount++;
 
     this.objects.push(object);
   }
