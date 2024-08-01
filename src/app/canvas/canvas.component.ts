@@ -15,10 +15,11 @@ import {
   MatRowDef,
   MatTable
 } from '@angular/material/table';
-import { NgClass } from '@angular/common';
+import { NgClass, NgForOf, NgStyle } from '@angular/common';
 import { thermal_conductivity } from '../../lib/data';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateDialogComponent } from '../create-dialog/create-dialog.component';
+import { tableElements } from '../data';
 
 interface Point {
   x: number;
@@ -51,6 +52,21 @@ interface ObjectModel {
   height: number;
 }
 
+export interface elementModel {
+  inactive: boolean,
+  symbol: string,
+  name: string,
+  mass: number,
+  Z: number,
+  valences: number[] | string,
+  group: string,
+  x: number,
+  y: number,
+  period: number,
+  positionGroup: number,
+  anionValence?: number
+}
+
 @Component({
   selector: 'app-canvas',
   standalone: true,
@@ -71,7 +87,9 @@ interface ObjectModel {
     MatRowDef,
     MatHeaderRow,
     MatRow,
-    NgClass
+    NgClass,
+    NgStyle,
+    NgForOf
   ],
   templateUrl: './canvas.component.html'
 })
@@ -464,5 +482,57 @@ export class CanvasComponent implements OnInit, OnDestroy {
     });
   }
 
-  protected readonly JSON = JSON;
+  PI: number = Math.PI;
+
+  velocity: number = 200;
+
+  activeElement: elementModel = tableElements.find(el => el.symbol === 'H')!;
+
+  tableOpen: boolean = false;
+
+  shells: number[] = [1];
+
+  elementSize: number = 4.5;
+
+  themes: any = {
+    'Alkali metals': '#ecbe59',
+    'Alkaline earth metals': '#dee955',
+    'Lanthanides': '#ec77a3',
+    'Actinides': '#c686cc',
+    'Transition metals': '#fd8572',
+    'Post-transition metals': '#4cddf3',
+    'Other nonmetals': '#52ee61',
+    'Noble gases': '#759fff',
+    'Metalloids': '#3aefb6'
+  };
+
+  addElement(element: elementModel): void {
+
+  }
+
+  getRange(length: number): number[] {
+    return Array.from({ length }, (_, i) => i);
+  }
+
+  selectActiveElement(element: elementModel) {
+    this.activeElement = element;
+    this.shells = [];
+
+    const shellValues = [2, 8, 8, 18, 18, 32, 32];
+
+    for (let remaining = this.activeElement.Z, i = 0; remaining; i++) {
+      if (shellValues[i] <= remaining) {
+        this.shells.push(shellValues[i]);
+        remaining -= shellValues[i];
+      } else {
+        if (remaining) {
+          this.shells.push(remaining);
+          break;
+        }
+      }
+    }
+    this.shells.reverse();
+  }
+
+  protected readonly tableElements = tableElements;
 }
