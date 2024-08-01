@@ -54,6 +54,8 @@ interface ObjectModel {
   width: number;
   height: number;
   z: number;
+  rows: number;
+  cols: number;
 }
 
 export interface elementModel {
@@ -201,8 +203,12 @@ export class CanvasComponent implements OnInit, OnDestroy {
     this.currentObject = object;
 
     this.objectTooltip = true;
-    this.activeElement = tableElements.find((el) => el.name === this.getNameByZ(object.z))!;
-    this.selectActiveElement(tableElements.find((el) => el.name === this.getNameByZ(object.z))!);
+    this.activeElement = tableElements.find(
+      (el) => el.name === this.getNameByZ(object.z)
+    )!;
+    this.selectActiveElement(
+      tableElements.find((el) => el.name === this.getNameByZ(object.z))!
+    );
 
     this.moveAction.origin.x = object.pos.x;
     this.moveAction.origin.y = object.pos.y;
@@ -272,22 +278,6 @@ export class CanvasComponent implements OnInit, OnDestroy {
     return tableElements.find((el) => el.Z === Z)!.name;
   }
 
-  electronOrbitRadius(v: number) {
-    const h = 6.626e-34;
-    const m_e = 9.109e-31;
-    const pi = Math.PI;
-
-    return h / (2 * pi * m_e * v);
-  }
-
-  electronVelocity(Z: number, n = 1) {
-    const e = 1.602e-19;
-    const epsilon_0 = 8.854e-12;
-    const h_bar = 1.055e-34;
-
-    return ((Z * e * e) / (2 * epsilon_0 * h_bar)) * (1 / n);
-  }
-
   generateObj(
     rows: number,
     cols: number,
@@ -338,7 +328,9 @@ export class CanvasComponent implements OnInit, OnDestroy {
       atomRadius,
       width: space * cols - atomGap - atomRadius,
       height: space * rows - atomGap - atomRadius,
-      z: z
+      z,
+      rows,
+      cols
     };
 
     this.objectCount++;

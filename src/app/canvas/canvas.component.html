@@ -26,7 +26,8 @@
   </main>
 </div>
 
-<aside class='fixed top-4 right-4 gap-4 flex flex-col'>
+<aside
+  class='fixed top-4 right-4 gap-4 flex flex-col max-h-screen overflow-hidden overflow-y-auto  pb-12'>
   <div class='bg-neutral-800/50 p-4 rounded-3xl backdrop-blur-lg w-[500px]'>
     <h6 class='text-base text-white'>Objects</h6>
     <div class='grid grid-cols-[1fr_1fr_1fr_auto]'>
@@ -43,7 +44,8 @@
           [ngClass]='"text-white border-b border-b-white/20 py-2 flex items-center " + ((idx === objects.length - 1) ? "border-none" : "")'>{{ meanTemperature(object).toFixed(2) }}
           K</span>
         <span
-          [ngClass]='"text-white border-b border-b-white/20 py-2 flex items-center " + ((idx === objects.length - 1) ? "border-none" : "")'>{{ object.width + 'x' + object.height }}</span>
+          [ngClass]='"text-white border-b border-b-white/20 py-2 flex items-center " + ((idx === objects.length - 1) ? "border-none" : "")'>{{ (object.cols * object.atomRadius * 30).toFixed(0) + 'x' + (object.rows * object.atomRadius * 30).toFixed(0) }}
+          pm</span>
         <div
           [ngClass]='"border-b border-b-white/20 py-2 flex items-center " + ((idx === objects.length - 1) ? "border-none" : "")'>
           <button mat-icon-button (click)='objects.splice(objects.indexOf(object), 1)'>
@@ -107,9 +109,14 @@
         <p class='!mb-0'>Average temperature</p>
         <p>{{ currentObject && meanTemperature(currentObject).toFixed(2) }}K</p>
         <p class='!mb-0'>Size</p>
-        <p>{{ currentObject && (currentObject.width + 'x' + currentObject.height) }}</p>
+        <p>{{
+            currentObject && ((currentObject.cols * currentObject.atomRadius * 30).toFixed(0) + 'x' + (currentObject.rows * currentObject.atomRadius * 30).toFixed(0))
+          }} pm</p>
       </div>
     </div>
+  </div>
+  <div class='bg-neutral-800/50 p-4 rounded-3xl backdrop-blur-lg w-[500px] flex flex-col items-center'>
+    <img src='assets/image.png' alt="equation" />
   </div>
 </aside>
 
@@ -185,6 +192,7 @@
     </div>
   </div>
 </div>
+
 
 <style>
   p, h6 {
