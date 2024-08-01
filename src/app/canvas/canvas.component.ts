@@ -1,4 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { MatDivider } from '@angular/material/divider';
+import { MatList, MatListItem } from '@angular/material/list';
 
 interface Point {
   x: number;
@@ -32,7 +34,11 @@ interface ObjectModel {
 @Component({
   selector: 'app-canvas',
   standalone: true,
-  imports: [],
+  imports: [
+    MatDivider,
+    MatList,
+    MatListItem
+  ],
   templateUrl: './canvas.component.html'
 })
 export class CanvasComponent implements OnInit, OnDestroy {

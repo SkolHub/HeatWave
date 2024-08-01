@@ -1,26 +1,22 @@
-<div class="w-full h-full flex" (mousemove)="onMouseMove($event)" (mouseup)="onMouseUp()">
-  <aside class="flex h-full">
-    test
-    <button (click)="generateObj(5, 5, 5, 10)">Add group</button>
-  </aside>
-  <main class="grow h-full">
-    <svg id="canvas" class="w-full h-full bg-black">
+<div class='w-full h-full flex' (mousemove)='onMouseMove($event)' (mouseup)='onMouseUp()'>
+  <main class='grow h-full'>
+    <svg id='canvas' class='w-full h-full bg-black'>
       <g>
         @for (atom of airAtoms; track atom.id) {
-          <circle [attr.cx]="atom.pos.x" [attr.cy]="atom.pos.y" r="8" [attr.fill]="'#b9e8fe'" />
+          <circle [attr.cx]='atom.pos.x' [attr.cy]='atom.pos.y' r='8' [attr.fill]="'#b9e8fe'" />
         }
       </g>
       <g>
         @for (object of objects; track object.id) {
-          <rect [attr.x]="object.pos.x" [attr.y]="object.pos.y" [attr.width]="object.width"
-                [attr.height]="object.height" fill="blue"
-                (mousedown)="onMouseDown($event, object)" />
+          <rect [attr.x]='object.pos.x' [attr.y]='object.pos.y' [attr.width]='object.width'
+                [attr.height]='object.height' fill='blue'
+                (mousedown)='onMouseDown($event, object)' />
           <g>
             @for (atom of object.atoms; track atom.id) {
-              <circle [attr.cx]="object.pos.x + atom.pos.x + object.atomRadius / 2"
-                      [attr.cy]="object.pos.y + atom.pos.y + object.atomRadius / 2"
-                      [attr.r]="object.atomRadius"
-                      [attr.fill]="'red'" style="pointer-events: none" />
+              <circle [attr.cx]='object.pos.x + atom.pos.x + object.atomRadius / 2'
+                      [attr.cy]='object.pos.y + atom.pos.y + object.atomRadius / 2'
+                      [attr.r]='object.atomRadius'
+                      [attr.fill]="'red'" style='pointer-events: none' />
             }
           </g>
         }
@@ -29,3 +25,17 @@
     </svg>
   </main>
 </div>
+
+<aside class='fixed top-4 right-4 bg-neutral-800/50 p-4 rounded-3xl backdrop-blur-lg'>
+  <h2 class='text-base'>Objects</h2>
+  <mat-list>
+    @for (group of objects; track group.id; let idx = $index) {
+      <mat-list-item class='flex items-center space-x-2'>
+        <span class='text-white'>{{ group.id }}</span>
+        <button class='text-white' (click)='objects.splice(idx, 1)'>Remove</button>
+      </mat-list-item>
+      <mat-divider />
+    }
+  </mat-list>
+  <button class='text-white' (click)='generateObj(5, 5, 5, 10)'>Add group</button>
+</aside>
