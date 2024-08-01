@@ -137,9 +137,11 @@ export class CanvasComponent implements OnInit, OnDestroy {
   interval: number = 1000;
   backgroundAtoms: boolean = true;
 
-  measureTool: boolean = false;
+  objectTooltip: boolean = false;
 
   baseTemp: number = 293;
+
+  currentObject: ObjectModel | null = null;
 
   getTemperature(
     k1: number,
@@ -196,6 +198,11 @@ export class CanvasComponent implements OnInit, OnDestroy {
 
   onMouseDown(e: MouseEvent, object: ObjectModel) {
     this.selectedObject = object;
+    this.currentObject = object;
+
+    this.objectTooltip = true;
+    this.activeElement = tableElements.find((el) => el.name === this.getNameByZ(object.z))!;
+    this.selectActiveElement(tableElements.find((el) => el.name === this.getNameByZ(object.z))!);
 
     this.moveAction.origin.x = object.pos.x;
     this.moveAction.origin.y = object.pos.y;
@@ -585,6 +592,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
           this.temperature = 0;
           this.width = 5;
           this.height = 5;
+          this.currentElement = tableElements[0];
         } else {
           this.temperature = temperature;
           this.width = width;
