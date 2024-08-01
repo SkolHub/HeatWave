@@ -27,11 +27,15 @@
     [discrete]='true'>
     <input matSliderThumb [(ngModel)]='height'>
   </mat-slider>
-  <button mat-button (click)='onNoClick()'>catalog</button>
+  <p>Selected element: {{element.name}}</p>
+  <button mat-flat-button class='w-full'
+          [mat-dialog-close]='{ temperature: temperature, width: width, height: height, inProgress: true }'>Pick element
+  </button>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-button (click)='onNoClick()'>Cancel</button>
-  <button mat-button [mat-dialog-close]='{ temperature: temperature, width: width, height: height }' cdkFocusInitial>
+  <button mat-button [mat-dialog-close]='{ temperature: temperature, width: width, height: height, inProgress: false }'
+          cdkFocusInitial>
     Ok
   </button>
 </mat-dialog-actions>

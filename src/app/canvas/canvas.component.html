@@ -38,7 +38,7 @@
       }
       @for (object of objects; track object.id; let idx = $index) {
         <span
-          [ngClass]='"text-white border-b border-b-white/20 py-2 flex items-center " + ((idx === objects.length - 1) ? "border-none" : "")'>{{ object.id }}</span>
+          [ngClass]='"text-white border-b border-b-white/20 py-2 flex items-center " + ((idx === objects.length - 1) ? "border-none" : "")'>{{ getNameByZ(object.z) }}</span>
         <span
           [ngClass]='"text-white border-b border-b-white/20 py-2 flex items-center " + ((idx === objects.length - 1) ? "border-none" : "")'>{{ meanTemperature(object).toFixed(2) }}
           K</span>
@@ -56,65 +56,76 @@
   </div>
   <div class='bg-neutral-800/50 p-4 rounded-3xl backdrop-blur-lg w-[500px]'>
     <h6>Environment configurations</h6>
-    <p>Speed of simulation: {{interval}}</p>
+    <p>Speed of simulation: {{ interval }}</p>
+    <mat-slider class='!w-full' [max]='10000' [min]='1' [step]='1' [discrete]='true'>
+      <input matSliderThumb [(ngModel)]='interval' (dragEnd)='startInterval(10001 - $event.value)'>
+    </mat-slider>
+    <p>Temperature of simulation: {{ interval }}</p>
     <mat-slider class='!w-full' [max]='10000' [min]='1' [step]='1' [discrete]='true'>
       <input matSliderThumb [(ngModel)]='interval' (dragEnd)='startInterval($event.value)'>
     </mat-slider>
-    <p>Speed of simulation: {{interval}}</p>
-    <mat-slider class='!w-full' [max]='10000' [min]='1' [step]='1' [discrete]='true'>
-      <input matSliderThumb [(ngModel)]='interval' (dragEnd)='startInterval($event.value)'>
-    </mat-slider>
-<!--    toggle-->
+    <div class='flex justify-between items-center pb-4'>
+      <p class='!mb-0'>Background atoms</p>
+      <mat-slide-toggle [(ngModel)]='backgroundAtoms'
+                        (change)='!$event.checked ? removeAir() : generateAir()'></mat-slide-toggle>
+    </div>
+    <div class='flex justify-between items-center'>
+      <p class='!mb-0'>Measurement tool</p>
+      <mat-slide-toggle [(ngModel)]='measureTool'></mat-slide-toggle>
+    </div>
   </div>
 </aside>
-<div class="fixed z-50 top-0 left-0 flex flex-col backdrop-blur-lg w-screen h-screen overflow-auto pr-8">
-  <div id="table" class="relative w-full h-full">
+
+
+<div
+  [ngClass]="'fixed z-50 top-0 left-0 flex flex-col backdrop-blur-lg w-screen h-screen overflow-auto pr-8 ' + (tableOpen ? null : 'hidden')">
+  <div id='table' class='relative w-full h-full'>
     @for (element of tableElements; track element.Z) {
-      <div (mouseenter)="selectActiveElement(element)" class="absolute border border-transparent flex cursor-pointer"
-           (click)="clickElement(element.symbol)"
-           [ngStyle]="getPos(element)">
+      <div (mouseenter)='selectActiveElement(element)' class='absolute border border-transparent flex cursor-pointer'
+           (click)='addElement(element)'
+           [ngStyle]='getPos(element)'>
         <div
-          class="w-full h-full border bg-[#131313] hover:scale-150 hover:z-50 flex flex-col items-center justify-between"
+          class='w-full h-full border bg-[#131313] hover:scale-150 hover:z-50 flex flex-col items-center justify-between'
           [ngStyle]="{
           borderColor: themes[element.group],
           borderWidth: '1px',
           filter: (element.inactive ? 'opacity(.25)' : '')
           }"
-          style="-webkit-transition: all 0.07s ease-in-out !important;
+          style='-webkit-transition: all 0.07s ease-in-out !important;
 	-moz-transition: all 0.07s ease-in-out !important;
 	-ms-transition: all 0.07s ease-in-out !important;
 	-o-transition: all 0.07s ease-in-out !important;
-	transition: all 0.07s ease-in-out !important;">
-          <span class="text-white text-xs leading-none self-start pt-1 pl-1" [ngStyle]="{
+	transition: all 0.07s ease-in-out !important;'>
+          <span class='text-white text-xs leading-none self-start pt-1 pl-1' [ngStyle]="{
           color: themes[element.group],
           'text-shadow': '0px 0px 5px ' + themes[element.group]
           }">{{ element.Z }}</span>
-          <div class="flex flex-col items-center">
-            <span class="text-white text-2xl leading-none" [ngStyle]="{
+          <div class='flex flex-col items-center'>
+            <span class='text-white text-2xl leading-none' [ngStyle]="{
           color: themes[element.group],
           'text-shadow': '0px 0px 5px ' + themes[element.group]
           }">{{ element.symbol }}</span>
-            <span class="text-white text-xs leading-none" [ngStyle]="{
+            <span class='text-white text-xs leading-none' [ngStyle]="{
           color: themes[element.group],
           'text-shadow': '0px 0px 5px ' + themes[element.group]
           }">{{ element.name }}</span>
           </div>
-          <span class="text-white text-xs leading-none pb-1" [ngStyle]="{
+          <span class='text-white text-xs leading-none pb-1' [ngStyle]="{
           color: themes[element.group],
           'text-shadow': '0px 0px 5px ' + themes[element.group]
           }">{{ element.mass }}</span>
         </div>
       </div>
     }
-    <div class="absolute flex flex-col items-center justify-between" [ngStyle]="getPosElementCard({x: 1, y: 8.5})">
-      <svg class="absolute" viewBox="0 0 500 500">
-        <g *ngFor="let shell of shells; let i = index">
-          <circle cx="250" cy="250" [attr.r]="220 - 25 * i" stroke-width="4" fill="none" stroke="#828282"></circle>
-          <g *ngFor="let j of getRange(shell); let k = index">
-            <circle [attr.cx]="470 - 25 * i" cy="250" r="7" fill="#828282">
-              <animateTransform attributeName="transform" attributeType="XML" type="rotate"
+    <div class='absolute flex flex-col items-center justify-between' [ngStyle]='getPosElementCard({x: 1, y: 8.5})'>
+      <svg class='absolute' viewBox='0 0 500 500'>
+        <g *ngFor='let shell of shells; let i = index'>
+          <circle cx='250' cy='250' [attr.r]='220 - 25 * i' stroke-width='4' fill='none' stroke='#828282'></circle>
+          <g *ngFor='let j of getRange(shell); let k = index'>
+            <circle [attr.cx]='470 - 25 * i' cy='250' r='7' fill='#828282'>
+              <animateTransform attributeName='transform' attributeType='XML' type='rotate'
                                 [attr.from]="360 / getRange(shell).length * j + ' 250 250'"
-                                [attr.to]="360 / getRange(shell).length * j + 360 + ' 250 250'" repeatCount="indefinite"
+                                [attr.to]="360 / getRange(shell).length * j + 360 + ' 250 250'" repeatCount='indefinite'
                                 [attr.dur]="(2 * PI * (220 - 25 * i)) / velocity + 's'" />
             </circle>
           </g>
@@ -122,18 +133,24 @@
       </svg>
       <label
         [ngStyle]="{ 'color': themes[activeElement.group], 'text-shadow': '0px 0px 5px ' + themes[activeElement.group] }"
-        class="self-start text-xl">{{ activeElement.Z }}</label>
-      <div class="flex flex-col items-center">
+        class='self-start text-xl'>{{ activeElement.Z }}</label>
+      <div class='flex flex-col items-center'>
         <label
           [ngStyle]="{ 'color': themes[activeElement.group], 'text-shadow': '0px 0px 5px ' + themes[activeElement.group] }"
-          class="symbol-active text-6xl">{{ activeElement.symbol }}</label>
+          class='symbol-active text-6xl'>{{ activeElement.symbol }}</label>
         <label
           [ngStyle]="{ 'color': themes[activeElement.group], 'text-shadow': '0px 0px 5px ' + themes[activeElement.group] }"
-          class="name-active">{{ activeElement.name }}</label>
+          class='name-active'>{{ activeElement.name }}</label>
       </div>
       <label
         [ngStyle]="{ 'color': themes[activeElement.group], 'text-shadow': '0px 0px 5px ' + themes[activeElement.group] }"
-        class="mass-active">{{ activeElement.mass }}</label>
+        class='mass-active'>{{ activeElement.mass }}</label>
     </div>
   </div>
 </div>
+
+<style>
+  p, h6 {
+    color: white;
+  }
+</style>

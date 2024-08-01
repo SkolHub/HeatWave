@@ -19,9 +19,10 @@ import { NgClass, NgForOf, NgStyle } from '@angular/common';
 import { thermal_conductivity } from '../../lib/data';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateDialogComponent } from '../create-dialog/create-dialog.component';
-import { tableElements, themes } from '../data';
+import { tableElements } from '../data';
 import { MatSlider, MatSliderThumb } from '@angular/material/slider';
 import { FormsModule } from '@angular/forms';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 interface Point {
   x: number;
@@ -52,6 +53,7 @@ interface ObjectModel {
   atomRadius: number;
   width: number;
   height: number;
+  z: number;
 }
 
 export interface elementModel {
@@ -94,7 +96,8 @@ export interface elementModel {
     NgForOf,
     MatSlider,
     FormsModule,
-    MatSliderThumb
+    MatSliderThumb,
+    MatSlideToggle
   ],
   templateUrl: './canvas.component.html'
 })
@@ -129,43 +132,10 @@ export class CanvasComponent implements OnInit, OnDestroy {
   canvasWidth!: number;
   canvasHeight!: number;
 
-  PI: number = Math.PI;
-
-  velocity: number = 200;
-
-  activeElement: elementModel = tableElements.find((el) => el.symbol === 'H')!;
-
-  shells: number[] = [1];
-
-  clickElement(symbol: string) {}
-
-  getPos(element: Point) {
-    const table = document.getElementById('table')!;
-
-    const height = table.clientHeight / 11;
-
-    return {
-      top: `${element.y * height - height / 2}px`,
-      left: `${element.x * height - height / 2}px`,
-      width: `${height}px`,
-      height: `${height}px`
-    };
-  }
-
-  getPosElementCard(element: Point) {
-    const table = document.getElementById('table')!;
-
-    const height = table.clientHeight / 11;
-
-    return {
-      top: `${element.y * height - height / 2}px`,
-      left: `${element.x * height - height / 2}px`,
-      width: `${height * 2.5}px`,
-      height: `${height * 2.5}px`
-    };
-  }
-
   interval: number = 1000;
+  backgroundAtoms: boolean = true;
+
+  measureTool: boolean = false;
 
   getTemperature(
     k1: number,
@@ -235,19 +205,24 @@ export class CanvasComponent implements OnInit, OnDestroy {
     this.selectedObject = null;
   }
 
+  getNameByZ(Z: number) {
+    return tableElements.find((el) => el.Z === Z)!.name;
+  }
+
   generateObj(
     rows: number,
     cols: number,
     atomRadius: number,
     atomGap: number,
-    temperature: number
+    temperature: number,
+    z: number
   ) {
     const atoms: SolidAtom[] = [];
 
     const space = atomGap + atomRadius * 2;
 
-    for (let i = 0; i < rows; i++) {
-      for (let j = 0; j < cols; j++) {
+    for (let i = 0; i < cols; i++) {
+      for (let j = 0; j < rows; j++) {
         atoms.push({
           origin: {
             x: space * i,
@@ -258,8 +233,8 @@ export class CanvasComponent implements OnInit, OnDestroy {
             y: space * j
           },
           temperature: temperature,
-          Z: 94,
-          conductivity: thermal_conductivity.find((el) => el.Z === 94)!
+          Z: z,
+          conductivity: thermal_conductivity.find((el) => el.Z === z)!
             .conductivity,
           id: `atom${this.atomCount}`
         });
@@ -277,7 +252,8 @@ export class CanvasComponent implements OnInit, OnDestroy {
       },
       atomRadius,
       width: space * cols - atomGap - atomRadius,
-      height: space * rows - atomGap - atomRadius
+      height: space * rows - atomGap - atomRadius,
+      z: z
     };
 
     this.objectCount++;
@@ -371,6 +347,10 @@ export class CanvasComponent implements OnInit, OnDestroy {
     for (let i = 0; i < numParticles; i++) {
       this.airAtoms.push(this.createParticle(`air ${i}`, width, height, 8));
     }
+  }
+
+  removeAir() {
+    this.airAtoms.splice(0, this.airAtoms.length);
   }
 
   private updateSolidAtoms(): void {
@@ -494,17 +474,88 @@ export class CanvasComponent implements OnInit, OnDestroy {
 
   readonly dialog = inject(MatDialog);
 
+  temperature: number = 0;
+  width: number = 5;
+  height: number = 5;
+
+  currentElement: elementModel = tableElements[0];
+
   openDialog(): void {
     const dialogRef = this.dialog.open(CreateDialogComponent, {
-      data: { temperature: 0, width: 0, height: 0 }
+      data: { temperature: this.temperature, width: this.width, height: this.height, element: this.currentElement }
     });
 
     dialogRef.afterClosed().subscribe((result) => {
+      console.log(result);
       if (result !== undefined) {
-        const { temperature, width, height } = result;
-        this.generateObj(width, height, 5, 5, temperature);
+        const { temperature, width, height, inProgress } = result;
+        if (!inProgress) {
+          this.generateObj(width, height, 5, 5, temperature, this.currentElement.Z);
+          this.temperature = 0;
+          this.width = 5;
+          this.height = 5;
+        } else {
+          this.temperature = temperature;
+          this.width = width;
+          this.height = height;
+          this.tableOpen = true;
+        }
       }
     });
+  }
+
+  PI: number = Math.PI;
+
+  velocity: number = 200;
+
+  activeElement: elementModel = tableElements.find(el => el.symbol === 'H')!;
+
+  tableOpen: boolean = false;
+
+  shells: number[] = [1];
+
+  themes: any = {
+    'Alkali metals': '#ecbe59',
+    'Alkaline earth metals': '#dee955',
+    'Lanthanides': '#ec77a3',
+    'Actinides': '#c686cc',
+    'Transition metals': '#fd8572',
+    'Post-transition metals': '#4cddf3',
+    'Other nonmetals': '#52ee61',
+    'Noble gases': '#759fff',
+    'Metalloids': '#3aefb6'
+  };
+
+  addElement(element: elementModel): void {
+    this.currentElement = element;
+    this.tableOpen = false;
+    this.openDialog();
+  }
+
+  getPos(element: Point) {
+    const table = document.getElementById('table')!;
+
+    const height = table.clientHeight / 11;
+
+    return {
+      top: `${element.y * height - height / 2}px`,
+      left: `${element.x * height - height / 2}px`,
+      width: `${height}px`,
+      height: `${height}px`
+    };
+  }
+
+  getPosElementCard(element: Point) {
+    const table = document.getElementById('table')!;
+
+    const height = table.clientHeight / 11;
+
+    return {
+      top: `${element.y * height - height / 2}px`,
+      left: `${element.x * height - height / 2}px`,
+      width: `${height * 2.5}px`,
+      height: `${height * 2.5}px`
+    };
   }
 
   getRange(length: number): number[] {
@@ -532,5 +583,4 @@ export class CanvasComponent implements OnInit, OnDestroy {
   }
 
   protected readonly tableElements = tableElements;
-  protected readonly themes = themes;
 }
