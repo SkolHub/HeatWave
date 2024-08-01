@@ -46,6 +46,19 @@ export class CanvasComponent implements OnInit, OnDestroy {
   private objectCount: number = 0;
 
   private selectedObject: ObjectModel | null = null;
+  private moveAction: {
+    origin: Point;
+    grip: Point;
+  } = {
+    origin: {
+      x: 0,
+      y: 0
+    },
+    grip: {
+      x: 0,
+      y: 0
+    }
+  };
 
   airRadius: number = 20;
 
@@ -54,7 +67,6 @@ export class CanvasComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.startInterval();
-    this.generateObj(10, 10, 5, 10);
     this.generateAir();
     this.animate();
   }
@@ -75,14 +87,22 @@ export class CanvasComponent implements OnInit, OnDestroy {
     }
   }
 
-  onMouseDown(_e: MouseEvent, object: ObjectModel) {
+  onMouseDown(e: MouseEvent, object: ObjectModel) {
     this.selectedObject = object;
+
+    this.moveAction.origin.x = object.pos.x;
+    this.moveAction.origin.y = object.pos.y;
+
+    this.moveAction.grip.x = e.clientX;
+    this.moveAction.grip.y = e.clientY;
   }
 
   onMouseMove(e: MouseEvent) {
     if (this.selectedObject) {
-      this.selectedObject.pos.x = e.clientX;
-      this.selectedObject.pos.y = e.clientY;
+      this.selectedObject.pos.x =
+        e.clientX - this.moveAction.grip.x + this.moveAction.origin.x;
+      this.selectedObject.pos.y =
+        e.clientY - this.moveAction.grip.y + this.moveAction.origin.y;
     }
   }
 
@@ -122,8 +142,8 @@ export class CanvasComponent implements OnInit, OnDestroy {
         y: 50
       },
       atomRadius,
-      width: 20,
-      height: 20
+      width: space * cols - atomGap - atomRadius,
+      height: space * rows - atomGap - atomRadius
     };
 
     this.objectCount++;

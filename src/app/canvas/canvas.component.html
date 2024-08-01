@@ -12,11 +12,13 @@
       </g>
       <g>
         @for (object of objects; track object.id) {
-          <rect [attr.x]="object.pos.x" [attr.y]="object.pos.y" [attr.width]="50" [attr.height]="50" fill="blue"
+          <rect [attr.x]="object.pos.x" [attr.y]="object.pos.y" [attr.width]="object.width"
+                [attr.height]="object.height" fill="blue"
                 (mousedown)="onMouseDown($event, object)" />
           <g>
             @for (atom of object.atoms; track atom.id) {
-              <circle [attr.cx]="object.pos.x + atom.pos.x" [attr.cy]="object.pos.y + atom.pos.y"
+              <circle [attr.cx]="object.pos.x + atom.pos.x + object.atomRadius / 2"
+                      [attr.cy]="object.pos.y + atom.pos.y + object.atomRadius / 2"
                       [attr.r]="object.atomRadius"
                       [attr.fill]="'red'" style="pointer-events: none" />
             }
