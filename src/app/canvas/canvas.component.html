@@ -60,19 +60,18 @@
     <mat-slider class='!w-full' [max]='10000' [min]='1' [step]='1' [discrete]='true'>
       <input matSliderThumb [(ngModel)]='interval' (dragEnd)='startInterval(10001 - $event.value)'>
     </mat-slider>
-    <p>Temperature of simulation: {{ interval }}</p>
-    <mat-slider class='!w-full' [max]='10000' [min]='1' [step]='1' [discrete]='true'>
-      <input matSliderThumb [(ngModel)]='interval' (dragEnd)='startInterval($event.value)'>
+    <p>Temperature of simulation: {{ baseTemp }}</p>
+    <mat-slider class='!w-full' [max]='150' [min]='0' [step]='1' [discrete]='true'>
+      <input matSliderThumb [(ngModel)]='baseTemp' (dragEnd)='setTemp($event.value)'>
     </mat-slider>
     <div class='flex justify-between items-center pb-4'>
       <p class='!mb-0'>Background atoms</p>
       <mat-slide-toggle [(ngModel)]='backgroundAtoms'
                         (change)='!$event.checked ? removeAir() : generateAir()'></mat-slide-toggle>
     </div>
-    <div class='flex justify-between items-center'>
-      <p class='!mb-0'>Measurement tool</p>
-      <mat-slide-toggle [(ngModel)]='measureTool'></mat-slide-toggle>
-    </div>
+  </div>
+  <div class="bg-neutral-800/50 p-4 rounded-3xl backdrop-blur-lg w-[500px]">
+    <p class="!mb-0">Temperature: {{ toolTipContent }} K</p>
   </div>
 </aside>
 

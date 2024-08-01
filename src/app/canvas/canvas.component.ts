@@ -127,6 +127,8 @@ export class CanvasComponent implements OnInit, OnDestroy {
     }
   };
 
+  toolTipContent?: string = '';
+
   airRadius: number = 20;
 
   canvasWidth!: number;
@@ -136,6 +138,8 @@ export class CanvasComponent implements OnInit, OnDestroy {
   backgroundAtoms: boolean = true;
 
   measureTool: boolean = false;
+
+  baseTemp: number = 26;
 
   getTemperature(
     k1: number,
@@ -172,6 +176,14 @@ export class CanvasComponent implements OnInit, OnDestroy {
     }, interval);
   }
 
+  setTemp(temp: number) {
+    this.baseTemp = temp;
+
+    for (const atom of this.airAtoms) {
+      atom.temperature = temp;
+    }
+  }
+
   private stopInterval(): void {
     if (this.agitationInterval) {
       clearInterval(this.agitationInterval);
@@ -198,6 +210,50 @@ export class CanvasComponent implements OnInit, OnDestroy {
         e.clientX - this.moveAction.grip.x + this.moveAction.origin.x;
       this.selectedObject.pos.y =
         e.clientY - this.moveAction.grip.y + this.moveAction.origin.y;
+    } else {
+      const groupAtomsCopy = structuredClone(
+        this.objects
+          .map((object) =>
+            object.atoms.map((atom) => ({
+              pos: {
+                x: atom.pos.x + object.pos.x,
+                y: atom.pos.y + object.pos.y
+              },
+              temperature: atom.temperature,
+              conductivity: atom.conductivity,
+              id: atom.id
+            }))
+          )
+          .flat()
+      );
+
+      const airAtomsCopy = structuredClone(
+        this.airAtoms.map((atom) => ({
+          pos: {
+            x: atom.pos.x,
+            y: atom.pos.y
+          },
+          temperature: atom.temperature,
+          conductivity: atom.conductivity,
+          id: atom.id
+        }))
+      );
+
+      const total_atoms = [...groupAtomsCopy, ...airAtomsCopy];
+
+      let short_dist = 100,
+        min_point_temp: number | null = null;
+
+      for (const atom of total_atoms) {
+        const dist = this.sqrt(atom.pos, { x: e.clientX, y: e.clientY });
+
+        if (dist < short_dist) {
+          short_dist = dist;
+          min_point_temp = atom.temperature;
+        }
+      }
+
+      this.toolTipContent = min_point_temp?.toFixed(2);
     }
   }
 
@@ -482,7 +538,12 @@ export class CanvasComponent implements OnInit, OnDestroy {
 
   openDialog(): void {
     const dialogRef = this.dialog.open(CreateDialogComponent, {
-      data: { temperature: this.temperature, width: this.width, height: this.height, element: this.currentElement }
+      data: {
+        temperature: this.temperature,
+        width: this.width,
+        height: this.height,
+        element: this.currentElement
+      }
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -490,7 +551,14 @@ export class CanvasComponent implements OnInit, OnDestroy {
       if (result !== undefined) {
         const { temperature, width, height, inProgress } = result;
         if (!inProgress) {
-          this.generateObj(width, height, 5, 5, temperature, this.currentElement.Z);
+          this.generateObj(
+            width,
+            height,
+            5,
+            5,
+            temperature,
+            this.currentElement.Z
+          );
           this.temperature = 0;
           this.width = 5;
           this.height = 5;
@@ -508,7 +576,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
 
   velocity: number = 200;
 
-  activeElement: elementModel = tableElements.find(el => el.symbol === 'H')!;
+  activeElement: elementModel = tableElements.find((el) => el.symbol === 'H')!;
 
   tableOpen: boolean = false;
 
@@ -517,13 +585,13 @@ export class CanvasComponent implements OnInit, OnDestroy {
   themes: any = {
     'Alkali metals': '#ecbe59',
     'Alkaline earth metals': '#dee955',
-    'Lanthanides': '#ec77a3',
-    'Actinides': '#c686cc',
+    Lanthanides: '#ec77a3',
+    Actinides: '#c686cc',
     'Transition metals': '#fd8572',
     'Post-transition metals': '#4cddf3',
     'Other nonmetals': '#52ee61',
     'Noble gases': '#759fff',
-    'Metalloids': '#3aefb6'
+    Metalloids: '#3aefb6'
   };
 
   addElement(element: elementModel): void {
