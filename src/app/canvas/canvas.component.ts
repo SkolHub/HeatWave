@@ -19,7 +19,7 @@ import { NgClass, NgForOf, NgStyle } from '@angular/common';
 import { thermal_conductivity } from '../../lib/data';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateDialogComponent } from '../create-dialog/create-dialog.component';
-import { tableElements } from '../data';
+import { atom_radius, tableElements } from '../data';
 import { MatSlider, MatSliderThumb } from '@angular/material/slider';
 import { FormsModule } from '@angular/forms';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
@@ -139,7 +139,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
 
   measureTool: boolean = false;
 
-  baseTemp: number = 26;
+  baseTemp: number = 293;
 
   getTemperature(
     k1: number,
@@ -153,7 +153,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
   }
 
   getColor(atom: Atom) {
-    return `rgba(${Math.round((atom.temperature / 100) * 255)}, 0, ${255 - Math.round((atom.temperature / 100) * 255)})`;
+    return `rgba(${Math.round((atom.temperature / 500) * 255)}, 0, ${255 - Math.round((atom.temperature / 500) * 255)})`;
   }
 
   ngOnInit(): void {
@@ -265,6 +265,22 @@ export class CanvasComponent implements OnInit, OnDestroy {
     return tableElements.find((el) => el.Z === Z)!.name;
   }
 
+  electronOrbitRadius(v: number) {
+    const h = 6.626e-34;
+    const m_e = 9.109e-31;
+    const pi = Math.PI;
+
+    return h / (2 * pi * m_e * v);
+  }
+
+  electronVelocity(Z: number, n = 1) {
+    const e = 1.602e-19;
+    const epsilon_0 = 8.854e-12;
+    const h_bar = 1.055e-34;
+
+    return ((Z * e * e) / (2 * epsilon_0 * h_bar)) * (1 / n);
+  }
+
   generateObj(
     rows: number,
     cols: number,
@@ -274,6 +290,12 @@ export class CanvasComponent implements OnInit, OnDestroy {
     z: number
   ) {
     const atoms: SolidAtom[] = [];
+
+    // atomRadius = 5 + 5 * Math.log10(z);
+
+    atomRadius = atom_radius.find((el) => el.Z === z)!.radius / 30;
+
+    console.log(atomRadius);
 
     const space = atomGap + atomRadius * 2;
 
@@ -333,7 +355,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
         x: (Math.random() - 0.5) / 4,
         y: (Math.random() - 0.5) / 4
       },
-      temperature: 50,
+      temperature: this.baseTemp,
       Z,
       conductivity: thermal_conductivity.find((el) => el.Z === Z)!.conductivity,
       color: '#00F'
@@ -412,7 +434,8 @@ export class CanvasComponent implements OnInit, OnDestroy {
   private updateSolidAtoms(): void {
     for (const object of this.objects) {
       for (const atom of object.atoms) {
-        const trueMaxMovement = (this.maxMovement * atom.temperature) / 40;
+        const trueMaxMovement =
+          (this.maxMovement * atom.temperature) / ((400 * atom.Z) / 6 + 300);
 
         let posX = atom.pos.x + (Math.random() - 0.5) * trueMaxMovement;
         let posY = atom.pos.y + (Math.random() - 0.5) * trueMaxMovement;

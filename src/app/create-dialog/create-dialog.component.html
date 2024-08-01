@@ -1,10 +1,10 @@
 <h2 mat-dialog-title>Add object</h2>
-<mat-dialog-content>
+<mat-dialog-content class="!overflow-hidden">
   <p>Temperature: {{ temperature }}</p>
   <mat-slider
     class='!w-full'
-    [max]='1000'
-    [min]='-1000'
+    [max]='600'
+    [min]='0'
     [step]='1'
     [discrete]='true'>
     <input matSliderThumb [(ngModel)]='temperature'>
@@ -27,7 +27,7 @@
     [discrete]='true'>
     <input matSliderThumb [(ngModel)]='height'>
   </mat-slider>
-  <p>Selected element: {{element.name}}</p>
+  <p>Selected element: {{ element.name }}</p>
   <button mat-flat-button class='w-full'
           [mat-dialog-close]='{ temperature: temperature, width: width, height: height, inProgress: true }'>Pick element
   </button>
@@ -39,3 +39,6 @@
     Ok
   </button>
 </mat-dialog-actions>
+<style>
+
+</style>

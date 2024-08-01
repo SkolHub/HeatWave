@@ -60,8 +60,8 @@
     <mat-slider class='!w-full' [max]='10000' [min]='1' [step]='1' [discrete]='true'>
       <input matSliderThumb [(ngModel)]='interval' (dragEnd)='startInterval(10001 - $event.value)'>
     </mat-slider>
-    <p>Temperature of simulation: {{ baseTemp }}</p>
-    <mat-slider class='!w-full' [max]='150' [min]='0' [step]='1' [discrete]='true'>
+    <p>Temperature of simulation: {{ baseTemp }} K</p>
+    <mat-slider class='!w-full' [max]='500' [min]='0' [step]='1' [discrete]='true'>
       <input matSliderThumb [(ngModel)]='baseTemp' (dragEnd)='setTemp($event.value)'>
     </mat-slider>
     <div class='flex justify-between items-center pb-4'>
