@@ -106,8 +106,15 @@ export class CanvasComponent implements OnInit, OnDestroy {
   canvasWidth!: number;
   canvasHeight!: number;
 
-  getTemperature(k1: number, k2: number, dT: number, d: number, A: number = 1) {
-    return (((k1 + k2) / 2) * A * dT) / d;
+  getTemperature(
+    k1: number,
+    k2: number,
+    T1: number,
+    T2: number,
+    d: number,
+    A: number = 1
+  ) {
+    return -(((k1 + k2) / 2) * A * (T1 - T2)) / d;
   }
 
   getColor(atom: Atom) {
@@ -167,7 +174,13 @@ export class CanvasComponent implements OnInit, OnDestroy {
     this.selectedObject = null;
   }
 
-  generateObj(rows: number, cols: number, atomRadius: number, atomGap: number, temperature: number) {
+  generateObj(
+    rows: number,
+    cols: number,
+    atomRadius: number,
+    atomGap: number,
+    temperature: number
+  ) {
     const atoms: SolidAtom[] = [];
 
     const space = atomGap + atomRadius * 2;
@@ -331,7 +344,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
     );
   }
 
-  async updateTemperature() {
+  updateTemperature() {
     const groupAtomsCopy = structuredClone(
       this.objects
         .map((object) =>
@@ -341,7 +354,8 @@ export class CanvasComponent implements OnInit, OnDestroy {
               y: atom.pos.y + object.pos.y
             },
             temperature: atom.temperature,
-            conductivity: atom.conductivity
+            conductivity: atom.conductivity,
+            id: atom.id
           }))
         )
         .flat()
@@ -354,7 +368,8 @@ export class CanvasComponent implements OnInit, OnDestroy {
           y: atom.pos.y
         },
         temperature: atom.temperature,
-        conductivity: atom.conductivity
+        conductivity: atom.conductivity,
+        id: atom.id
       }))
     );
 
@@ -363,32 +378,75 @@ export class CanvasComponent implements OnInit, OnDestroy {
     for (const object of this.objects) {
       for (const atom of object.atoms) {
         for (const influence of total_atoms) {
-          const distance = this.sqrt(atom.pos, influence.pos);
+          if (atom.id === influence.id) {
+            continue;
+          }
+
+          const distance = this.sqrt(
+            {
+              x: atom.pos.x + object.pos.x,
+              y: atom.pos.y + object.pos.y
+            },
+            influence.pos
+          );
 
           atom.temperature -=
             this.getTemperature(
               atom.conductivity,
               influence.conductivity,
-              atom.temperature - influence.temperature,
+              influence.temperature,
+              atom.temperature,
               distance + 0.01
             ) * 100;
+
+          atom.temperature = Math.max(atom.temperature, 0);
         }
       }
     }
 
+    let min = 1000000000,
+      max = -100000000;
+
     for (const atom of this.airAtoms) {
       for (const influence of total_atoms) {
+        if (atom.id === influence.id) {
+          continue;
+        }
+
         const distance = this.sqrt(atom.pos, influence.pos);
+
+        // const prev = atom.temperature;
 
         atom.temperature -=
           this.getTemperature(
             atom.conductivity,
             influence.conductivity,
-            atom.temperature - influence.temperature,
+            influence.temperature,
+            atom.temperature,
             distance + 0.01
           ) * 100;
+
+        // if (atom.temperature > 50) {
+        //   console.log(
+        //     atom.conductivity,
+        //     influence.conductivity,
+        //     influence.temperature,
+        //     atom.temperature,
+        //     prev,
+        //     distance + 0.01
+        //   );
+        //
+        //   clearInterval(this.temperatureInterval);
+        // }
+
+        // atom.temperature = Math.max(atom.temperature, 0);
+        //
+        // min = Math.min(atom.temperature, min);
+        // max = Math.max(atom.temperature, max);
       }
     }
+
+    console.log(min, max);
   }
 
   readonly dialog = inject(MatDialog);
@@ -398,7 +456,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
       data: { temperature: 0, width: 0, height: 0 }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result !== undefined) {
         const { temperature, width, height } = result;
         this.generateObj(width, height, 5, 5, temperature);
