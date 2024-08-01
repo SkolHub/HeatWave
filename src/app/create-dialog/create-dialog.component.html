@@ -1,19 +1,33 @@
 <h2 mat-dialog-title>Add object</h2>
 <mat-dialog-content>
-  <mat-form-field>
-    <mat-label>Temperature</mat-label>
-    <input matInput [(ngModel)]='temperature' />
-  </mat-form-field>
-  <div class='flex gap-4'>
-    <mat-form-field>
-      <mat-label>Width</mat-label>
-      <input matInput [(ngModel)]='width' />
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Height</mat-label>
-      <input matInput [(ngModel)]='height' />
-    </mat-form-field>
-  </div>
+  <p>Temperature: {{ temperature }}</p>
+  <mat-slider
+    class='!w-full'
+    [max]='1000'
+    [min]='-1000'
+    [step]='1'
+    [discrete]='true'>
+    <input matSliderThumb [(ngModel)]='temperature'>
+  </mat-slider>
+  <p>Width: {{ width }}</p>
+  <mat-slider
+    class='!w-full'
+    [max]='25'
+    [min]='1'
+    [step]='1'
+    [discrete]='true'>
+    <input matSliderThumb [(ngModel)]='width'>
+  </mat-slider>
+  <p>Height: {{ height }}</p>
+  <mat-slider
+    class='!w-full'
+    [max]='25'
+    [min]='1'
+    [step]='1'
+    [discrete]='true'>
+    <input matSliderThumb [(ngModel)]='height'>
+  </mat-slider>
+  <button mat-button (click)='onNoClick()'>catalog</button>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-button (click)='onNoClick()'>Cancel</button>

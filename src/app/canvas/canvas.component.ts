@@ -20,6 +20,9 @@ import { thermal_conductivity } from '../../lib/data';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateDialogComponent } from '../create-dialog/create-dialog.component';
 import { tableElements } from '../data';
+import { MatSlider, MatSliderThumb } from '@angular/material/slider';
+import { FormsModule } from '@angular/forms';
+import { Event } from '@angular/router';
 
 interface Point {
   x: number;
@@ -89,7 +92,10 @@ export interface elementModel {
     MatRow,
     NgClass,
     NgStyle,
-    NgForOf
+    NgForOf,
+    MatSlider,
+    FormsModule,
+    MatSliderThumb
   ],
   templateUrl: './canvas.component.html'
 })
@@ -124,6 +130,8 @@ export class CanvasComponent implements OnInit, OnDestroy {
   canvasWidth!: number;
   canvasHeight!: number;
 
+  interval: number = 1000;
+
   getTemperature(
     k1: number,
     k2: number,
@@ -140,7 +148,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.startInterval();
+    this.startInterval(1000);
     this.generateAir();
     this.animate();
   }
@@ -149,14 +157,14 @@ export class CanvasComponent implements OnInit, OnDestroy {
     this.stopInterval();
   }
 
-  private startInterval(): void {
+  startInterval(interval: number): void {
     this.agitationInterval = setInterval(() => {
       this.updateSolidAtoms();
     }, 50);
 
     this.temperatureInterval = setInterval(() => {
       this.updateTemperature();
-    }, 1000);
+    }, interval);
   }
 
   private stopInterval(): void {
@@ -463,8 +471,10 @@ export class CanvasComponent implements OnInit, OnDestroy {
         // max = Math.max(atom.temperature, max);
       }
     }
+  }
 
-    console.log(min, max);
+  meanTemperature(object: ObjectModel) {
+    return object.atoms.reduce((acc, atom) => acc + atom.temperature, 0) / object.atoms.length;
   }
 
   readonly dialog = inject(MatDialog);

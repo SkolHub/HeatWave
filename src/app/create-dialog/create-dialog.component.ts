@@ -11,6 +11,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
+import { MatSlider, MatSliderThumb } from '@angular/material/slider';
 
 @Component({
   selector: 'app-create-dialog',
@@ -24,16 +25,18 @@ import { MatButton } from '@angular/material/button';
     MatDialogActions,
     MatButton,
     MatDialogClose,
-    MatLabel
+    MatLabel,
+    MatSlider,
+    MatSliderThumb
   ],
   templateUrl: './create-dialog.component.html'
 })
 export class CreateDialogComponent {
   readonly dialogRef = inject(MatDialogRef<CreateDialogComponent>);
-  readonly data = inject(MAT_DIALOG_DATA);
-  readonly temperature = (this.data.animal);
-  readonly width = (this.data.animal);
-  readonly height = (this.data.animal);
+  data = inject(MAT_DIALOG_DATA);
+  temperature = 0;
+  width = 5;
+  height = 5;
 
   onNoClick(): void {
     this.dialogRef.close();
