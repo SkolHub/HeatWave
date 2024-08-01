@@ -9,7 +9,7 @@
       <g>
         @for (object of objects; track object.id) {
           <rect [attr.x]='object.pos.x' [attr.y]='object.pos.y' [attr.width]='object.width'
-                [attr.height]='object.height' fill='blue'
+                [attr.height]='object.height' fill='#808080' rx='10'
                 (mousedown)='onMouseDown($event, object)' />
           <g>
             @for (atom of object.atoms; track atom.id) {
@@ -26,16 +26,40 @@
   </main>
 </div>
 
-<aside class='fixed top-4 right-4 bg-neutral-800/50 p-4 rounded-3xl backdrop-blur-lg'>
-  <h2 class='text-base'>Objects</h2>
-  <mat-list>
-    @for (group of objects; track group.id; let idx = $index) {
-      <mat-list-item class='flex items-center space-x-2'>
-        <span class='text-white'>{{ group.id }}</span>
-        <button class='text-white' (click)='objects.splice(idx, 1)'>Remove</button>
-      </mat-list-item>
-      <mat-divider />
-    }
-  </mat-list>
-  <button class='text-white' (click)='generateObj(5, 5, 5, 10)'>Add group</button>
+<aside class='fixed top-4 right-4'>
+  <div class='bg-neutral-800/50 p-4 rounded-3xl backdrop-blur-lg w-96'>
+    <h6 class='text-base text-white'>Objects</h6>
+    <div class='grid grid-cols-3'>
+      @if (objects.length !== 0) {
+        <label class='text-white border-b border-b-white/20 pb-4'>Material</label>
+        <label class='text-white border-b border-b-white/20 pb-4'>Temperature</label>
+        <label class='text-white border-b border-b-white/20 pb-4'>Size</label>
+      }
+      @for (object of objects; track object.id; let idx = $index) {
+        <span
+          [ngClass]='"text-white border-b border-b-white/20 py-2 flex items-center " + ((idx === objects.length - 1) ? "border-none" : "")'>{{ object.id }}</span>
+        <span
+          [ngClass]='"text-white border-b border-b-white/20 py-2 flex items-center " + ((idx === objects.length - 1) ? "border-none" : "")'>{{ object.id }}</span>
+        <div [ngClass]='"border-b border-b-white/20 py-2 flex items-center " + ((idx === objects.length - 1) ? "border-none" : "")'>
+          <button mat-icon-button (click)='objects.splice(objects.indexOf(object), 1)'>
+            <mat-icon class='text-red-500'>remove_circle_outline</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+    <!--    <mat-list>-->
+    <!--      @for (group of objects; track group.id; let idx = $index) {-->
+    <!--        <mat-list-item class='flex items-center justify-between space-x-2'>-->
+    <!--          <div class='flex justify-between items-center'>-->
+    <!--            <span class='text-white'>{{ group.id }}</span>-->
+    <!--            <button mat-icon-button (click)='objects.splice(idx, 1)'>-->
+    <!--              <mat-icon class='text-red-500'>remove_circle_outline</mat-icon>-->
+    <!--            </button>-->
+    <!--          </div>-->
+    <!--        </mat-list-item>-->
+    <!--        <mat-divider />-->
+    <!--      }-->
+    <!--    </mat-list>-->
+    <button mat-flat-button class='text-white w-full' (click)='generateObj(5, 5, 5, 10)'>Add object</button>
+  </div>
 </aside>

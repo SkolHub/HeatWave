@@ -1,6 +1,21 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDivider } from '@angular/material/divider';
 import { MatList, MatListItem } from '@angular/material/list';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import {
+  MatCell,
+  MatCellDef,
+  MatColumnDef,
+  MatHeaderCell,
+  MatHeaderCellDef,
+  MatHeaderRow,
+  MatHeaderRowDef,
+  MatRow,
+  MatRowDef,
+  MatTable
+} from '@angular/material/table';
+import { NgClass } from '@angular/common';
 import { thermal_conductivity } from '../../lib/data';
 
 interface Point {
@@ -37,7 +52,25 @@ interface ObjectModel {
 @Component({
   selector: 'app-canvas',
   standalone: true,
-  imports: [MatDivider, MatList, MatListItem],
+  imports: [
+    MatDivider,
+    MatList,
+    MatListItem,
+    MatButton,
+    MatIcon,
+    MatIconButton,
+    MatTable,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatCellDef,
+    MatHeaderCell,
+    MatCell,
+    MatHeaderRowDef,
+    MatRowDef,
+    MatHeaderRow,
+    MatRow,
+    NgClass
+  ],
   templateUrl: './canvas.component.html'
 })
 export class CanvasComponent implements OnInit, OnDestroy {
@@ -76,7 +109,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
   }
 
   getColor(atom: Atom) {
-    return `rgba(${Math.round((atom.temperature / 100) * 255)}, ${255 - Math.round((atom.temperature / 100) * 255)}, 0)`;
+    return `rgba(${Math.round((atom.temperature / 100) * 255)}, 0, ${255 - Math.round((atom.temperature / 100) * 255)})`;
   }
 
   ngOnInit(): void {
@@ -337,8 +370,6 @@ export class CanvasComponent implements OnInit, OnDestroy {
               atom.temperature - influence.temperature,
               distance + 0.01
             ) * 100;
-
-          console.log(atom.temperature);
         }
       }
     }
@@ -357,4 +388,6 @@ export class CanvasComponent implements OnInit, OnDestroy {
       }
     }
   }
+
+  protected readonly JSON = JSON;
 }
