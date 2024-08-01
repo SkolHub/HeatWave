@@ -5,9 +5,14 @@ interface Point {
   y: number;
 }
 
+interface Ray {
+
+}
+
 interface Source {
   id: string;
   pos: Point;
+  ray: Ray;
 }
 
 enum Action {
@@ -26,34 +31,50 @@ export class CanvasComponent {
   private sourcesSeq: number = 0;
 
   private action: Action = Action.None;
-  private selected: string | null = null;
+  private readonly moveActionData: {
+    origin: Point;
+    grip: Point;
+  } = {
+    grip: { x: 0, y: 0 },
+    origin: { x: 0, y: 0 }
+  };
 
-  onMouseDown(source: Source) {
-    this.selected = source.id;
+  private selectedSource: Source | null = null;
+
+  onMouseDown(source: Source, e: MouseEvent) {
+    this.selectedSource = source;
     this.action = Action.MoveSource;
-  }
 
-  onMouseMove(source: Source, e: MouseEvent) {
-    if (!this.selected) {
-      return;
-    }
-
-    source.pos = {
+    this.moveActionData.grip = {
       x: e.clientX,
       y: e.clientY
     };
+
+    this.moveActionData.origin = {
+      x: source.pos.x,
+      y: source.pos.y
+    };
   }
 
-  onMouseUp() {}
+  onMouseMove(e: MouseEvent) {
+    if (!this.selectedSource) {
+      return;
+    }
+
+    if (this.action === Action.MoveSource) {
+      this.selectedSource.pos = {
+        x:
+          this.moveActionData.origin.x + e.clientX - this.moveActionData.grip.x,
+        y: this.moveActionData.origin.y + e.clientY - this.moveActionData.grip.y
+      };
+    }
+  }
+
+  onMouseUp() {
+    this.action = Action.None;
+  }
 
   addSource() {
-    this.sources.push({
-      pos: {
-        x: 10,
-        y: 10
-      },
-      id: 's' + this.sourcesSeq
-    });
 
     this.sourcesSeq++;
   }
