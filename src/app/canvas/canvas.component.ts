@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDivider } from '@angular/material/divider';
 import { MatList, MatListItem } from '@angular/material/list';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -17,6 +17,8 @@ import {
 } from '@angular/material/table';
 import { NgClass } from '@angular/common';
 import { thermal_conductivity } from '../../lib/data';
+import { MatDialog } from '@angular/material/dialog';
+import { CreateDialogComponent } from '../create-dialog/create-dialog.component';
 
 interface Point {
   x: number;
@@ -165,7 +167,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
     this.selectedObject = null;
   }
 
-  generateObj(rows: number, cols: number, atomRadius: number, atomGap: number) {
+  generateObj(rows: number, cols: number, atomRadius: number, atomGap: number, temperature: number) {
     const atoms: SolidAtom[] = [];
 
     const space = atomGap + atomRadius * 2;
@@ -181,7 +183,7 @@ export class CanvasComponent implements OnInit, OnDestroy {
             x: space * i,
             y: space * j
           },
-          temperature: 10,
+          temperature: temperature,
           Z: 8,
           conductivity: thermal_conductivity.find((el) => el.Z === 8)!
             .conductivity,
@@ -387,6 +389,21 @@ export class CanvasComponent implements OnInit, OnDestroy {
           ) * 100;
       }
     }
+  }
+
+  readonly dialog = inject(MatDialog);
+
+  openDialog(): void {
+    const dialogRef = this.dialog.open(CreateDialogComponent, {
+      data: { temperature: 0, width: 0, height: 0 }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result !== undefined) {
+        const { temperature, width, height } = result;
+        this.generateObj(width, height, 5, 5, temperature);
+      }
+    });
   }
 
   protected readonly JSON = JSON;

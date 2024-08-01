@@ -1,0 +1,23 @@
+<h2 mat-dialog-title>Add object</h2>
+<mat-dialog-content>
+  <mat-form-field>
+    <mat-label>Temperature</mat-label>
+    <input matInput [(ngModel)]='temperature' />
+  </mat-form-field>
+  <div class='flex gap-4'>
+    <mat-form-field>
+      <mat-label>Width</mat-label>
+      <input matInput [(ngModel)]='width' />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Height</mat-label>
+      <input matInput [(ngModel)]='height' />
+    </mat-form-field>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button (click)='onNoClick()'>Cancel</button>
+  <button mat-button [mat-dialog-close]='{ temperature: temperature, width: width, height: height }' cdkFocusInitial>
+    Ok
+  </button>
+</mat-dialog-actions>
