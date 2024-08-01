@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDivider } from '@angular/material/divider';
 import { MatList, MatListItem } from '@angular/material/list';
+import { thermal_conductivity } from '../../lib/data';
 
 interface Point {
   x: number;
@@ -11,6 +12,8 @@ interface Atom {
   pos: Point;
   temperature: number;
   id: string;
+  Z: number;
+  conductivity: number;
 }
 
 interface GasAtom extends Atom {
@@ -34,16 +37,13 @@ interface ObjectModel {
 @Component({
   selector: 'app-canvas',
   standalone: true,
-  imports: [
-    MatDivider,
-    MatList,
-    MatListItem
-  ],
+  imports: [MatDivider, MatList, MatListItem],
   templateUrl: './canvas.component.html'
 })
 export class CanvasComponent implements OnInit, OnDestroy {
   private readonly maxMovement: number = 5;
-  private intervalID: any;
+  private agitationInterval: any;
+  private temperatureInterval: any;
 
   readonly objects: ObjectModel[] = [];
   readonly airAtoms: GasAtom[] = [];
@@ -71,6 +71,14 @@ export class CanvasComponent implements OnInit, OnDestroy {
   canvasWidth!: number;
   canvasHeight!: number;
 
+  getTemperature(k1: number, k2: number, dT: number, d: number, A: number = 1) {
+    return (((k1 + k2) / 2) * A * dT) / d;
+  }
+
+  getColor(atom: Atom) {
+    return `rgba(${Math.round((atom.temperature / 100) * 255)}, ${255 - Math.round((atom.temperature / 100) * 255)}, 0)`;
+  }
+
   ngOnInit(): void {
     this.startInterval();
     this.generateAir();
@@ -82,14 +90,22 @@ export class CanvasComponent implements OnInit, OnDestroy {
   }
 
   private startInterval(): void {
-    this.intervalID = setInterval(() => {
-      this.periodicTask();
+    this.agitationInterval = setInterval(() => {
+      this.updateSolidAtoms();
     }, 50);
+
+    this.temperatureInterval = setInterval(() => {
+      this.updateTemperature();
+    }, 1000);
   }
 
   private stopInterval(): void {
-    if (this.intervalID) {
-      clearInterval(this.intervalID);
+    if (this.agitationInterval) {
+      clearInterval(this.agitationInterval);
+    }
+
+    if (this.temperatureInterval) {
+      clearInterval(this.temperatureInterval);
     }
   }
 
@@ -132,7 +148,10 @@ export class CanvasComponent implements OnInit, OnDestroy {
             x: space * i,
             y: space * j
           },
-          temperature: 0,
+          temperature: 10,
+          Z: 8,
+          conductivity: thermal_conductivity.find((el) => el.Z === 8)!
+            .conductivity,
           id: `atom${this.atomCount}`
         });
 
@@ -157,7 +176,12 @@ export class CanvasComponent implements OnInit, OnDestroy {
     this.objects.push(object);
   }
 
-  createParticle(id: string, width: number, height: number): GasAtom {
+  createParticle(
+    id: string,
+    width: number,
+    height: number,
+    Z: number
+  ): GasAtom {
     return {
       id,
       pos: {
@@ -169,6 +193,8 @@ export class CanvasComponent implements OnInit, OnDestroy {
         y: (Math.random() - 0.5) / 4
       },
       temperature: 50,
+      Z,
+      conductivity: thermal_conductivity.find((el) => el.Z === Z)!.conductivity,
       color: '#00F'
     };
   }
@@ -234,11 +260,11 @@ export class CanvasComponent implements OnInit, OnDestroy {
     const numParticles = 1100;
 
     for (let i = 0; i < numParticles; i++) {
-      this.airAtoms.push(this.createParticle(`air ${i}`, width, height));
+      this.airAtoms.push(this.createParticle(`air ${i}`, width, height, 8));
     }
   }
 
-  private periodicTask(): void {
+  private updateSolidAtoms(): void {
     for (const object of this.objects) {
       for (const atom of object.atoms) {
         const trueMaxMovement = (this.maxMovement * atom.temperature) / 40;
@@ -260,6 +286,74 @@ export class CanvasComponent implements OnInit, OnDestroy {
 
         atom.pos.x = posX;
         atom.pos.y = posY;
+      }
+    }
+  }
+
+  sqrt(P1: Point, P2: Point) {
+    return Math.sqrt(
+      (P1.x - P2.x) * (P1.x - P2.x) + (P1.y - P2.y) * (P1.y - P2.y)
+    );
+  }
+
+  async updateTemperature() {
+    const groupAtomsCopy = structuredClone(
+      this.objects
+        .map((object) =>
+          object.atoms.map((atom) => ({
+            pos: {
+              x: atom.pos.x + object.pos.x,
+              y: atom.pos.y + object.pos.y
+            },
+            temperature: atom.temperature,
+            conductivity: atom.conductivity
+          }))
+        )
+        .flat()
+    );
+
+    const airAtomsCopy = structuredClone(
+      this.airAtoms.map((atom) => ({
+        pos: {
+          x: atom.pos.x,
+          y: atom.pos.y
+        },
+        temperature: atom.temperature,
+        conductivity: atom.conductivity
+      }))
+    );
+
+    const total_atoms = [...groupAtomsCopy, ...airAtomsCopy];
+
+    for (const object of this.objects) {
+      for (const atom of object.atoms) {
+        for (const influence of total_atoms) {
+          const distance = this.sqrt(atom.pos, influence.pos);
+
+          atom.temperature -=
+            this.getTemperature(
+              atom.conductivity,
+              influence.conductivity,
+              atom.temperature - influence.temperature,
+              distance + 0.01
+            ) * 100;
+
+          console.log(atom.temperature);
+        }
+      }
+    }
+
+    for (const atom of this.airAtoms) {
+      for (const influence of total_atoms) {
+        const distance = this.sqrt(atom.pos, influence.pos);
+
+        atom.temperature -=
+          this.getTemperature(
+            atom.conductivity,
+            influence.conductivity,
+            atom.temperature - influence.temperature,
+            distance + 0.01
+          ) * 100;
       }
     }
   }

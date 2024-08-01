@@ -3,7 +3,7 @@
     <svg id='canvas' class='w-full h-full bg-black'>
       <g>
         @for (atom of airAtoms; track atom.id) {
-          <circle [attr.cx]='atom.pos.x' [attr.cy]='atom.pos.y' r='8' [attr.fill]="'#b9e8fe'" />
+          <circle [attr.cx]='atom.pos.x' [attr.cy]='atom.pos.y' r='8' [attr.fill]="getColor(atom)" />
         }
       </g>
       <g>
@@ -16,7 +16,7 @@
               <circle [attr.cx]='object.pos.x + atom.pos.x + object.atomRadius / 2'
                       [attr.cy]='object.pos.y + atom.pos.y + object.atomRadius / 2'
                       [attr.r]='object.atomRadius'
-                      [attr.fill]="'red'" style='pointer-events: none' />
+                      [attr.fill]="getColor(atom)" style='pointer-events: none' />
             }
           </g>
         }
